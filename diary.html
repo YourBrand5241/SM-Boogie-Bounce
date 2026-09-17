@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shauna-May's School of Dance | Availability</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <img src="logo.png" alt="Shauna-May's School of Dance logo" class="brand-mark">
+        <span class="brand-name">Shauna-May's School of Dance</span>
+      </div>
+      <p class="tagline">Live class availability</p>
+      <nav class="site-nav">
+        <a href="index.html">Sign Up</a>
+        <a href="diary.html" class="active">View Availability</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page diary-page">
+
+    <section class="diary-section">
+      <h2>Kids Boogie Bounce — Mon/Wed/Fri, 6:00pm–7:00pm</h2>
+      <div id="kids-list"></div>
+    </section>
+
+    <section class="diary-section">
+      <h2>Adult Boogie Bounce — Mon/Wed/Fri, 6:00pm–7:00pm</h2>
+      <div id="adult-list"></div>
+    </section>
+
+    <section class="diary-section">
+      <h2>Upcoming Cancelled Sessions</h2>
+      <div id="cancelled-list"></div>
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="diary.js"></script>
+</body>
+</html>

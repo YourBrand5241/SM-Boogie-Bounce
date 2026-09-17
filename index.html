@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Demo Business — Order Online</title>
+<title>Shauna-May's School of Dance | Boogie Bounce — Sign Up</title>
+<link rel="icon" type="image/png" href="logo.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,24 +12,50 @@
   <header class="site-header">
     <div class="header-inner">
       <div class="brand">
-        <div class="brand-mark">DB</div>
-        <span class="brand-name">Demo Business</span>
+        <img src="logo.png" alt="Shauna-May's School of Dance logo" class="brand-mark">
+        <span class="brand-name">Shauna-May's School of Dance</span>
       </div>
-      <p class="tagline">Order or book online in a few taps</p>
+      <p class="tagline">Boogie Bounce — sign up online in a few taps</p>
+      <nav class="site-nav">
+        <a href="index.html" class="active">Sign Up</a>
+        <a href="diary.html">View Availability</a>
+      </nav>
     </div>
   </header>
 
   <main class="page">
 
     <section class="products-section">
-      <h2>Products &amp; Services</h2>
-      <div id="product-list" class="product-grid"></div>
+      <h2>Weekly Timetable</h2>
+      <div class="timetable">
+        <div class="timetable-row">
+          <span class="timetable-label">Kids Boogie Bounce</span>
+          <span>Monday, Wednesday, Friday — 6:00pm–7:00pm</span>
+        </div>
+        <div class="timetable-row">
+          <span class="timetable-label">Adult Boogie Bounce</span>
+          <span>Monday, Wednesday, Friday — 6:00pm–7:00pm</span>
+        </div>
+      </div>
+
+      <h2 class="section-spacer">1. Choose a class</h2>
+      <div class="radio-row">
+        <label><input type="radio" name="category" value="kids" checked> Kids Boogie Bounce</label>
+        <label><input type="radio" name="category" value="adult"> Adult Boogie Bounce</label>
+      </div>
+
+      <h2 class="section-spacer" id="package-heading">2. Your package</h2>
+      <div id="package-list" class="product-grid"></div>
+
+      <h2 class="section-spacer">3. Choose your day(s)</h2>
+      <p class="owner-note" id="days-instruction">Pick 1 day</p>
+      <div id="days-list" class="days-list"></div>
     </section>
 
     <aside class="basket-panel">
-      <h2>Your Basket</h2>
-      <div id="basket-items" class="basket-items">
-        <p class="empty-basket">Nothing added yet</p>
+      <h2>Your Sign-Up</h2>
+      <div id="summary" class="basket-items">
+        <p class="empty-basket">Choose a package and days to continue</p>
       </div>
 
       <div class="basket-total-row">
@@ -37,23 +64,29 @@
       </div>
 
       <div class="slot-picker">
-        <label for="time-slot">Choose a time</label>
-        <select id="time-slot"></select>
+        <label for="customer-name">Your name</label>
+        <input type="text" id="customer-name" placeholder="Full name">
+        <label for="customer-email">Email</label>
+        <input type="email" id="customer-email" placeholder="you@example.com">
+        <label for="customer-phone">Phone number</label>
+        <input type="tel" id="customer-phone" placeholder="e.g. 07123 456789">
       </div>
 
-      <button id="checkout-btn" class="checkout-btn" disabled>Checkout</button>
+      <button id="checkout-btn" class="checkout-btn" disabled>Confirm Sign-Up &amp; Pay</button>
     </aside>
 
   </main>
 
   <div id="confirmation-overlay" class="overlay hidden">
     <div class="confirmation-box">
-      <h3>This is a demo</h3>
-      <p>In the live version, this button takes the customer to a secure Stripe payment page, then confirms their order by email — no code changes needed for a real business, just their own products, times, and Stripe account.</p>
+      <h3>You're signed up!</h3>
+      <p>Your spot has been saved. In the live version, this step happens right after a secure Stripe payment, and you'll get a confirmation email.</p>
       <button id="close-overlay" class="checkout-btn">Close</button>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
