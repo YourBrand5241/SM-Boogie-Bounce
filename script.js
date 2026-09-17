@@ -167,20 +167,34 @@ function toggleDay(day) {
   renderSummary();
 }
 
+function getSelectedDuration() {
+  const input = document.querySelector('input[name="duration"]:checked');
+  return Number(input.value);
+}
+
 function renderSummary() {
   const summaryEl = document.getElementById("summary");
   const totalEl = document.getElementById("basket-total");
+  const totalLabel = document.getElementById("basket-total-label");
 
   if (!selectedPackage || selectedDays.length === 0) {
     summaryEl.innerHTML = `<p class="empty-basket">Choose a package and days to continue</p>`;
     totalEl.textContent = formatPrice(0);
+    if (totalLabel) totalLabel.textContent = "Total";
   } else {
+    const durationWeeks = getSelectedDuration();
+    const startDateInput = document.getElementById("start-date");
+
     summaryEl.innerHTML = `
       <p><strong>${getCategoryLabel()}</strong></p>
       <p>${selectedPackage.name}</p>
       <p>Days: ${selectedDays.join(", ")}</p>
+      ${startDateInput.value ? `<p>Starting: ${startDateInput.value}</p>` : ""}
+      <p>${durationWeeks} weeks</p>
     `;
-    totalEl.textContent = formatPrice(selectedPackage.price);
+
+    totalEl.textContent = formatPrice(selectedPackage.price * durationWeeks);
+    if (totalLabel) totalLabel.textContent = `Total (${durationWeeks} weeks)`;
   }
   updateCheckoutAvailability();
 }
@@ -203,9 +217,7 @@ async function confirmSignUp() {
   const emailInput = document.getElementById("customer-email");
   const phoneInput = document.getElementById("customer-phone");
   const startDateInput = document.getElementById("start-date");
-  const durationInput = document.querySelector('input[name="duration"]:checked');
-  const durationWeeks = durationInput.value ? Number(durationInput.value) : null;
-  const durationLabel = durationWeeks ? `${durationWeeks} weeks` : "ongoing, until cancelled";
+  const durationWeeks = getSelectedDuration();
 
   if (!selectedPackage || selectedDays.length !== selectedPackage.size
     || !nameInput.value.trim() || !emailInput.value.trim() || !phoneInput.value.trim()
@@ -236,7 +248,7 @@ async function confirmSignUp() {
       to_name: nameInput.value.trim(),
       business_name: BUSINESS_NAME,
       email_subject: `Sign-up confirmed — ${BUSINESS_NAME}`,
-      email_body: `You're signed up with ${BUSINESS_NAME}.\n\n${getCategoryLabel()} — ${selectedPackage.name} (${selectedDays.join(", ")})\nEvery week at ${CLASS_TIME}\nStarting: ${startDateInput.value} (${durationLabel})\nTotal: ${formatPrice(selectedPackage.price)}/week`,
+      email_body: `You're signed up with ${BUSINESS_NAME}.\n\n${getCategoryLabel()} — ${selectedPackage.name} (${selectedDays.join(", ")})\nEvery week at ${CLASS_TIME}\nStarting: ${startDateInput.value} (${durationWeeks} weeks)\nTotal: ${formatPrice(selectedPackage.price * durationWeeks)}`,
     }).catch(err => console.error("Confirmation email failed to send:", err));
   }
 
@@ -276,7 +288,14 @@ function setupCheckout() {
 ["customer-name", "customer-email", "customer-phone"].forEach(id => {
   document.getElementById(id).addEventListener("input", updateCheckoutAvailability);
 });
-document.getElementById("start-date").addEventListener("change", updateCheckoutAvailability);
+document.getElementById("start-date").addEventListener("change", () => {
+  updateCheckoutAvailability();
+  renderSummary();
+});
+
+document.querySelectorAll('input[name="duration"]').forEach(radio => {
+  radio.addEventListener("change", renderSummary);
+});
 
 function setupStartDateMin() {
   const startDateInput = document.getElementById("start-date");
