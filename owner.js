@@ -93,12 +93,16 @@ async function loadMembers() {
   listEl.innerHTML = "";
   data.forEach(enrollment => {
     const label = enrollment.category === "kids" ? "Kids Boogie Bounce" : "Adult Boogie Bounce";
+    const durationLabel = enrollment.duration_weeks
+      ? `${enrollment.duration_weeks} weeks (ends ${addWeeks(enrollment.start_date, enrollment.duration_weeks)})`
+      : "ongoing";
     const row = document.createElement("div");
     row.className = "appointment-row";
     row.innerHTML = `
       <div>
         <strong>${enrollment.customer_name}</strong> — ${label}<br>
         ${enrollment.package_size} class/week: ${enrollment.chosen_days.join(", ")} — ${formatPrice(enrollment.price_per_week)}/week<br>
+        Started ${enrollment.start_date || "unknown"} — ${durationLabel}<br>
         ${enrollment.customer_phone || "No phone"} · ${enrollment.customer_email || "No email"}
       </div>
       <button class="secondary-btn cancel-btn" data-id="${enrollment.id}">Remove</button>
@@ -161,6 +165,26 @@ function dayNameFromDate(dateStr) {
   return days[new Date(dateStr + "T00:00:00").getDay()];
 }
 
+function addWeeks(dateStr, weeks) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + weeks * 7);
+  const pad = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function isActiveOnDate(enrollment, sessionDate) {
+  if (!enrollment.start_date) return true; // older sign-ups without a start date — assume active
+  const session = new Date(sessionDate + "T00:00:00");
+  const start = new Date(enrollment.start_date + "T00:00:00");
+  if (session < start) return false;
+  if (enrollment.duration_weeks) {
+    const end = new Date(start);
+    end.setDate(end.getDate() + enrollment.duration_weeks * 7);
+    if (session >= end) return false;
+  }
+  return true;
+}
+
 async function notifyAffectedMembers(category, sessionDate, reason) {
   if (!window.emailjs) {
     console.warn("EmailJS not available — skipping notifications.");
@@ -172,7 +196,7 @@ async function notifyAffectedMembers(category, sessionDate, reason) {
 
   const { data, error } = await supabaseClient
     .from("class_enrollments")
-    .select("customer_name, customer_email, chosen_days")
+    .select("customer_name, customer_email, chosen_days, start_date, duration_weeks")
     .eq("business_id", BUSINESS_ID)
     .eq("category", category);
 
@@ -182,7 +206,9 @@ async function notifyAffectedMembers(category, sessionDate, reason) {
   }
   if (!data) return 0;
 
-  const affected = data.filter(row => (row.chosen_days || []).includes(dayName));
+  const affected = data.filter(row =>
+    (row.chosen_days || []).includes(dayName) && isActiveOnDate(row, sessionDate)
+  );
 
   let sentCount = 0;
   for (const member of affected) {

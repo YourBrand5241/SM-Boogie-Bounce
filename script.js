@@ -189,20 +189,27 @@ function updateCheckoutAvailability() {
   const nameInput = document.getElementById("customer-name");
   const emailInput = document.getElementById("customer-email");
   const phoneInput = document.getElementById("customer-phone");
+  const startDateInput = document.getElementById("start-date");
   const checkoutBtn = document.getElementById("checkout-btn");
 
   checkoutBtn.disabled = !selectedPackage
     || selectedDays.length !== selectedPackage.size
-    || !nameInput.value.trim() || !emailInput.value.trim() || !phoneInput.value.trim();
+    || !nameInput.value.trim() || !emailInput.value.trim() || !phoneInput.value.trim()
+    || !startDateInput.value;
 }
 
 async function confirmSignUp() {
   const nameInput = document.getElementById("customer-name");
   const emailInput = document.getElementById("customer-email");
   const phoneInput = document.getElementById("customer-phone");
+  const startDateInput = document.getElementById("start-date");
+  const durationInput = document.querySelector('input[name="duration"]:checked');
+  const durationWeeks = durationInput.value ? Number(durationInput.value) : null;
+  const durationLabel = durationWeeks ? `${durationWeeks} weeks` : "ongoing, until cancelled";
 
   if (!selectedPackage || selectedDays.length !== selectedPackage.size
-    || !nameInput.value.trim() || !emailInput.value.trim() || !phoneInput.value.trim()) return;
+    || !nameInput.value.trim() || !emailInput.value.trim() || !phoneInput.value.trim()
+    || !startDateInput.value) return;
 
   const { error } = await supabaseClient.from("class_enrollments").insert({
     business_id: BUSINESS_ID,
@@ -213,6 +220,8 @@ async function confirmSignUp() {
     customer_name: nameInput.value.trim(),
     customer_email: emailInput.value.trim(),
     customer_phone: phoneInput.value.trim(),
+    start_date: startDateInput.value,
+    duration_weeks: durationWeeks,
   });
 
   if (error) {
@@ -227,7 +236,7 @@ async function confirmSignUp() {
       to_name: nameInput.value.trim(),
       business_name: BUSINESS_NAME,
       email_subject: `Sign-up confirmed — ${BUSINESS_NAME}`,
-      email_body: `You're signed up with ${BUSINESS_NAME}.\n\n${getCategoryLabel()} — ${selectedPackage.name} (${selectedDays.join(", ")})\nEvery week at ${CLASS_TIME}\nTotal: ${formatPrice(selectedPackage.price)}/week`,
+      email_body: `You're signed up with ${BUSINESS_NAME}.\n\n${getCategoryLabel()} — ${selectedPackage.name} (${selectedDays.join(", ")})\nEvery week at ${CLASS_TIME}\nStarting: ${startDateInput.value} (${durationLabel})\nTotal: ${formatPrice(selectedPackage.price)}/week`,
     }).catch(err => console.error("Confirmation email failed to send:", err));
   }
 
@@ -238,6 +247,7 @@ async function confirmSignUp() {
   nameInput.value = "";
   emailInput.value = "";
   phoneInput.value = "";
+  startDateInput.value = "";
   await loadDayCounts();
   renderPackages();
   renderDays();
@@ -266,6 +276,14 @@ function setupCheckout() {
 ["customer-name", "customer-email", "customer-phone"].forEach(id => {
   document.getElementById(id).addEventListener("input", updateCheckoutAvailability);
 });
+document.getElementById("start-date").addEventListener("change", updateCheckoutAvailability);
+
+function setupStartDateMin() {
+  const startDateInput = document.getElementById("start-date");
+  const today = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  startDateInput.min = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+}
 
 (async function init() {
   await loadDayCounts();
@@ -274,4 +292,5 @@ function setupCheckout() {
   renderSummary();
   setupCategoryToggle();
   setupCheckout();
+  setupStartDateMin();
 })();

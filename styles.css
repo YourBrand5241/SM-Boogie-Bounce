@@ -278,6 +278,15 @@ h2 {
   font-size: 14px;
 }
 
+#start-date {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #0f0f14;
+  color: var(--text);
+  font-size: 14px;
+}
+
 .slot-message {
   font-size: 13px;
   color: #ffb454;
