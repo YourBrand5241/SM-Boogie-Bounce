@@ -182,9 +182,6 @@ async function notifyAffectedMembers(category, sessionDate, reason) {
   }
   if (!data) return 0;
 
-  console.log("DEBUG — looking for day:", dayName, "in category:", category);
-  console.log("DEBUG — enrollments found:", data);
-
   const affected = data.filter(row => (row.chosen_days || []).includes(dayName));
 
   let sentCount = 0;
@@ -196,7 +193,7 @@ async function notifyAffectedMembers(category, sessionDate, reason) {
         to_name: member.customer_name || "there",
         business_name: BUSINESS_NAME,
         email_subject: `Class Cancelled — ${BUSINESS_NAME}`,
-        email_body: `Unfortunately your ${categoryLabel} class on ${sessionDate} has been cancelled.\n\nReason: ${reason || "Unforeseen circumstances"}\n\nSorry for the short notice — see you at the next session!`,
+        email_body: `Unfortunately your ${categoryLabel} class on ${sessionDate} has been cancelled.\n\nReason: ${reason || "Unforeseen circumstances"}\n\nIf you've already paid for this session, your refund will be processed automatically back to your original payment method within 3-5 business days.\n\nSorry for the short notice — see you at the next session!`,
       });
       sentCount++;
     } catch (err) {
