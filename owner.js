@@ -176,7 +176,14 @@ async function notifyAffectedMembers(category, sessionDate, reason) {
     .eq("business_id", BUSINESS_ID)
     .eq("category", category);
 
-  if (error || !data) return 0;
+  if (error) {
+    console.error("Failed to fetch enrollments for notification:", error);
+    return 0;
+  }
+  if (!data) return 0;
+
+  console.log("DEBUG — looking for day:", dayName, "in category:", category);
+  console.log("DEBUG — enrollments found:", data);
 
   const affected = data.filter(row => (row.chosen_days || []).includes(dayName));
 
