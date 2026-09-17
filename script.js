@@ -226,10 +226,8 @@ async function confirmSignUp() {
       to_email: emailInput.value.trim(),
       to_name: nameInput.value.trim(),
       business_name: BUSINESS_NAME,
-      service_names: `${getCategoryLabel()} — ${selectedPackage.name} (${selectedDays.join(", ")})`,
-      booking_date: "Ongoing weekly",
-      booking_time: CLASS_TIME,
-      total_price: formatPrice(selectedPackage.price),
+      email_subject: `Sign-up confirmed — ${BUSINESS_NAME}`,
+      email_body: `You're signed up with ${BUSINESS_NAME}.\n\n${getCategoryLabel()} — ${selectedPackage.name} (${selectedDays.join(", ")})\nEvery week at ${CLASS_TIME}\nTotal: ${formatPrice(selectedPackage.price)}/week`,
     }).catch(err => console.error("Confirmation email failed to send:", err));
   }
 

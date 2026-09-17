@@ -2,8 +2,18 @@
 const SUPABASE_URL = "https://jywhymtctdnvwwvxtcpw.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_8-VfhsJiclZMwjjkZ-k18A_gLYKbaGR";
 const BUSINESS_ID = "shauna-may-dance";
+const BUSINESS_NAME = "Shauna-May's School of Dance";
+
+// EmailJS — same account as your other sites, plus a dedicated
+// cancellation template (see chat for setup).
+const EMAILJS_SERVICE_ID = "service_zzjha2e";
+const EMAILJS_PUBLIC_KEY = "fs6q7ZsiYGhRUtas5";
+const EMAILJS_TEMPLATE_ID = "template_khedkjr";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+if (window.emailjs && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+  emailjs.init(EMAILJS_PUBLIC_KEY);
+}
 
 function formatPrice(amount) {
   return `£${Number(amount).toFixed(2)}`;
@@ -135,10 +145,58 @@ async function handleBlockSession() {
     return;
   }
 
-  message.textContent = "Cancelled.";
+  message.textContent = "Cancelled — notifying affected members…";
+  const notifiedCount = await notifyAffectedMembers(categorySelect.value, dateInput.value, reasonInput.value.trim());
+  message.textContent = notifiedCount > 0
+    ? `Cancelled — ${notifiedCount} member${notifiedCount > 1 ? "s" : ""} notified by email.`
+    : "Cancelled. No enrolled members found for that day to notify.";
+
   dateInput.value = "";
   reasonInput.value = "";
   loadBlockedSessions();
+}
+
+function dayNameFromDate(dateStr) {
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return days[new Date(dateStr + "T00:00:00").getDay()];
+}
+
+async function notifyAffectedMembers(category, sessionDate, reason) {
+  if (!window.emailjs) {
+    console.warn("EmailJS not available — skipping notifications.");
+    return 0;
+  }
+
+  const dayName = dayNameFromDate(sessionDate);
+  const categoryLabel = category === "kids" ? "Kids Boogie Bounce" : "Adult Boogie Bounce";
+
+  const { data, error } = await supabaseClient
+    .from("class_enrollments")
+    .select("customer_name, customer_email, chosen_days")
+    .eq("business_id", BUSINESS_ID)
+    .eq("category", category);
+
+  if (error || !data) return 0;
+
+  const affected = data.filter(row => (row.chosen_days || []).includes(dayName));
+
+  let sentCount = 0;
+  for (const member of affected) {
+    if (!member.customer_email) continue;
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email: member.customer_email,
+        to_name: member.customer_name || "there",
+        business_name: BUSINESS_NAME,
+        email_subject: `Class Cancelled — ${BUSINESS_NAME}`,
+        email_body: `Unfortunately your ${categoryLabel} class on ${sessionDate} has been cancelled.\n\nReason: ${reason || "Unforeseen circumstances"}\n\nSorry for the short notice — see you at the next session!`,
+      });
+      sentCount++;
+    } catch (err) {
+      console.error("Failed to notify", member.customer_email, err);
+    }
+  }
+  return sentCount;
 }
 
 async function loadBlockedSessions() {
