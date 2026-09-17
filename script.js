@@ -2,7 +2,7 @@
 const SUPABASE_URL = "https://jywhymtctdnvwwvxtcpw.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_8-VfhsJiclZMwjjkZ-k18A_gLYKbaGR";
 const BUSINESS_ID = "shauna-may-dance";
-const BUSINESS_NAME = "Shauna May School of Dance";
+const BUSINESS_NAME = "Shauna-May's School of Dance";
 
 // EmailJS — same account/template as your other sites.
 const EMAILJS_SERVICE_ID = "service_zzjha2e";
@@ -10,8 +10,11 @@ const EMAILJS_TEMPLATE_ID = "template_khedkjr";
 const EMAILJS_PUBLIC_KEY = "fs6q7ZsiYGhRUtas5";
 
 // ASSUMPTIONS — swap these for the real schedule/pricing/capacity.
-const CLASS_DAYS = ["Monday", "Wednesday", "Friday"];
-const CLASS_TIME = "6:00pm"; // both classes run 6-7pm on the same days
+const CLASS_DAYS = {
+  kids: ["Monday"],
+  adult: ["Wednesday", "Friday"],
+};
+const CLASS_TIME = "6:00pm"; // both classes run 6-7pm
 const CLASS_CAPACITY = 20; // spots per session
 
 const PACKAGES = {
@@ -102,9 +105,33 @@ function renderDays() {
     instruction.textContent = "Choose a package first";
     return;
   }
+
+  const availableDays = CLASS_DAYS[selectedCategory];
+
+  // If the number of available days exactly matches the package size,
+  // there's no real choice to make — select them all automatically.
+  if (availableDays.length === selectedPackage.size) {
+    selectedDays = [...availableDays];
+    instruction.textContent = selectedPackage.size === 1
+      ? `Your class day: ${availableDays[0]}`
+      : `Your class days: ${availableDays.join(" & ")}`;
+
+    availableDays.forEach(day => {
+      const key = `${selectedCategory}-${day}`;
+      const taken = dayCounts[key] || 0;
+      const spotsLeft = CLASS_CAPACITY - taken;
+      const el = document.createElement("div");
+      el.className = "day-option selected";
+      el.innerHTML = `<span>${day}</span><span class="day-spots">${spotsLeft} spots left</span>`;
+      list.appendChild(el);
+    });
+    renderSummary();
+    return;
+  }
+
   instruction.textContent = `Pick ${selectedPackage.size} day${selectedPackage.size > 1 ? "s" : ""}`;
 
-  CLASS_DAYS.forEach(day => {
+  availableDays.forEach(day => {
     const key = `${selectedCategory}-${day}`;
     const taken = dayCounts[key] || 0;
     const spotsLeft = CLASS_CAPACITY - taken;
